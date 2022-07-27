@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">LocalServer</string>
+    <string name="server_down">Server Down</string>
+    <string name="start_server">Start Server</string>
+    <string name="stop_server">Stop Server</string>
+    <string name="server_running">Server Running</string>
+</resources>
