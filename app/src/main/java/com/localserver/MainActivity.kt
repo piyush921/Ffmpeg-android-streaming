@@ -28,14 +28,16 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 import org.apache.commons.io.FileUtils
-import java.io.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
 import java.net.InetSocketAddress
-import java.nio.ByteBuffer
 import java.util.concurrent.Executors
 
 
 class MainActivity : AppCompatActivity(), ImageAnalysis.Analyzer, View.OnClickListener {
 
+    private val TAG = MainActivity::class.java.name
     private lateinit var binding: ActivityMainBinding
     private var serverUp = false
     private var message = "First message"
@@ -134,7 +136,7 @@ class MainActivity : AppCompatActivity(), ImageAnalysis.Analyzer, View.OnClickLi
             e.printStackTrace()
         }*/
 
-        val data = NV21toJPEG(YUV_420_888toNV21(mImage), mImage.width, mImage.height)
+        val data = nv21ToJpeg(yuv_420_888ToNv21(mImage), mImage.width, mImage.height)
         FileUtils.writeByteArrayToFile(File(baseContext.cacheDir, "frame.yuv"), data)
 
         /*val file = File(baseContext.cacheDir, "frame.yuv")
@@ -169,7 +171,7 @@ class MainActivity : AppCompatActivity(), ImageAnalysis.Analyzer, View.OnClickLi
         }*/
     }
 
-    private fun YUV_420_888toNV21(image: Image): ByteArray {
+    private fun yuv_420_888ToNv21(image: Image): ByteArray {
         val nv21: ByteArray
         val yBuffer = image.planes[0].buffer
         val uBuffer = image.planes[1].buffer
@@ -187,7 +189,7 @@ class MainActivity : AppCompatActivity(), ImageAnalysis.Analyzer, View.OnClickLi
     }
 
 
-    private fun NV21toJPEG(nv21: ByteArray, width: Int, height: Int): ByteArray? {
+    private fun nv21ToJpeg(nv21: ByteArray, width: Int, height: Int): ByteArray? {
         val out = ByteArrayOutputStream()
         val yuv = YuvImage(nv21, ImageFormat.NV21, width, height, null)
         yuv.compressToJpeg(Rect(0, 0, width, height), 100, out)
@@ -198,7 +200,7 @@ class MainActivity : AppCompatActivity(), ImageAnalysis.Analyzer, View.OnClickLi
         when (view?.id) {
             R.id.serverButton -> {
                 serverUp = if (!serverUp) {
-                    startServer(5000)
+                    startServer()
                     true
                 } else {
                     stopServer()
@@ -255,9 +257,9 @@ class MainActivity : AppCompatActivity(), ImageAnalysis.Analyzer, View.OnClickLi
 
     private var mHttpServer: HttpServer? = null
 
-    private fun startServer(port: Int) {
+    private fun startServer() {
         try {
-            mHttpServer = HttpServer.create(InetSocketAddress(port), 0)
+            mHttpServer = HttpServer.create(InetSocketAddress(5000), 0)
             mHttpServer!!.executor = Executors.newCachedThreadPool()
             mHttpServer!!.createContext("/", rootHandler)
             mHttpServer!!.start()
@@ -296,7 +298,7 @@ class MainActivity : AppCompatActivity(), ImageAnalysis.Analyzer, View.OnClickLi
                 val returnCode = session.returnCode
                 // CALLED WHEN SESSION IS EXECUTED
                 Log.d(
-                    "thisisdata",
+                    TAG,
                     String.format(
                         "FFmpeg process exited with state %s and rc %s.%s",
                         state,
@@ -306,10 +308,10 @@ class MainActivity : AppCompatActivity(), ImageAnalysis.Analyzer, View.OnClickLi
                 )
             }, {
                 // CALLED WHEN SESSION PRINTS LOGS
-                Log.d("thisisdata", "logs: ${it.message}")
+                Log.d(TAG, "logs: ${it.message}")
             }) {
             // CALLED WHEN SESSION GENERATES STATISTICS
-            Log.d("thisisdata", "stats: $it")
+            Log.d(TAG, "stats: $it")
         }
     }
 
@@ -321,7 +323,7 @@ class MainActivity : AppCompatActivity(), ImageAnalysis.Analyzer, View.OnClickLi
                 val returnCode = session.returnCode
                 // CALLED WHEN SESSION IS EXECUTED
                 Log.d(
-                    "thisisdata",
+                    TAG,
                     String.format(
                         "FFmpeg process exited with state %s and rc %s.%s",
                         state,
@@ -331,10 +333,10 @@ class MainActivity : AppCompatActivity(), ImageAnalysis.Analyzer, View.OnClickLi
                 )
             }, {
                 // CALLED WHEN SESSION PRINTS LOGS
-                Log.d("thisisdata", "logs: ${it.message}")
+                Log.d(TAG, "logs: ${it.message}")
             }) {
             // CALLED WHEN SESSION GENERATES STATISTICS
-            Log.d("thisisdata", "stats: $it")
+            Log.d(TAG, "stats: $it")
         }
     }
 
